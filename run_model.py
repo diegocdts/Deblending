@@ -36,3 +36,4 @@ optimizer = optim.Adam(model.parameters(), lr=lr)
 
 cross_validation = CrossValidation(model, criterion, optimizer, inputs, targets, n_splits, n_epochs, batch_size)
 cross_validation.run()
+cross_validation.predict(data_parameters["output_path"])

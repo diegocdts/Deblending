@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 
 from sklearn.model_selection import KFold
@@ -34,6 +35,8 @@ class CrossValidation:
         self.n_epochs = n_epochs
         self.batch_size = batch_size
         self.losses = []
+        self.best_model = None
+        self.lowest_loss = float('inf')
 
     def run(self):
         """
@@ -53,8 +56,11 @@ class CrossValidation:
             optimizer = self.optimizer
 
             for epoch in range(self.n_epochs):
-                train_loss = self.__train_epoch__(model, train_loader, optimizer)
+                model, optimizer, train_loss = self.__train_epoch__(model, train_loader, optimizer)
                 val_loss = self.__validate__(model, val_loader)
+                if val_loss < self.lowest_loss:
+                    self.lowest_loss = val_loss
+                    self.best_model = model
                 print(f'Epoch {epoch + 1}/{self.n_epochs}, Train Loss: {train_loss:.4f}, Validation Loss: {val_loss:.4f}')
                 if epoch == self.n_epochs - 1:
                     self.losses.append(val_loss)
@@ -72,7 +78,7 @@ class CrossValidation:
             loss.backward()
             optimizer.step()
             total_loss += loss.item()
-        return total_loss / len(train_loader)
+        return model, optimizer, total_loss / len(train_loader)
 
 
     def __validate__(self, model, val_loader):
@@ -84,3 +90,11 @@ class CrossValidation:
                 val_loss = self.criterion(val_outputs, y_val_batch)
                 val_loss_total += val_loss.item()
         return val_loss_total / len(val_loader)
+
+    def predict(self, output_path):
+        model = self.best_model.eval()
+        inputs = self.inputs
+        with torch.no_grad:
+            outputs = model(inputs)
+            outputs_array = outputs.cpu().numpy()
+            np.save(output_path, outputs_array)
