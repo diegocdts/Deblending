@@ -5,7 +5,7 @@
     "output_file_name": "seismic.segy",
     "shape": [1001, 120, 1500],
     "truncated_shape": [1000, 120, 1500],
-    "final_shape": [50, 2400, 1500],
+    "final_shape": [25, 9600, 750],
     "output_path": "/home/data/DEBLEND/seismic_predicted_deblended.npy"
   }
 }
