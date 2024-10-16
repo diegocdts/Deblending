@@ -74,7 +74,7 @@ class CrossValidation:
         model.train()
         total_loss = 0
         for x_batch, y_batch in train_loader:
-            x_batch, y_batch = x_batch.to(self.device), y_batch(self.device)
+            x_batch, y_batch = x_batch.to(self.device), y_batch.to(self.device)
             optimizer.zero_grad()
             outputs = model(x_batch)
             loss = self.criterion(outputs, y_batch)
