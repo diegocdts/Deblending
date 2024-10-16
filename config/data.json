@@ -2,10 +2,10 @@
   "data1": {
     "root": "/home/data/DEBLEND/",
     "input_file_name": "seismic_blended.npy",
-    "output_file_name": "seismic.segy",
+    "target_file_name": "seismic.segy",
     "shape": [1001, 120, 1500],
     "truncated_shape": [1000, 120, 1500],
     "final_shape": [25, 9600, 750],
-    "output_path": "/home/data/DEBLEND/seismic_predicted_deblended.npy"
+    "outputs": "/home/data/Deblending_model_XX_outputs/"
   }
 }

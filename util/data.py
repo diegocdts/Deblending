@@ -4,19 +4,7 @@ import sys
 import numpy as np
 import segyio
 import torch
-import pandas as pd
 import matplotlib.pyplot as plt
-
-
-def normalize(tensor: torch.tensor):
-    """
-    This function applies z-score normalization to a tensor
-    :param tensor: the tensor to be normalized
-    :return: the normalized tensor
-    """
-    mean = tensor.mean()
-    std = tensor.std()
-    return (tensor - mean) / std
 
 
 def plot_data(data: np.array, shape: tuple = None):
@@ -41,27 +29,62 @@ def plot_data(data: np.array, shape: tuple = None):
     plt.show()
 
 
+def get_mean_std(tensor: torch.tensor):
+    """
+    returns the mean and std of a tensor
+    :param tensor: the tensor to get the mean and std from
+    :return: mean and std
+    """
+    return tensor.mean(), tensor.std()
+
+def normalize(tensor: torch.tensor, mean: float, std: float):
+    """
+    applies the z-score normalization on a tensor
+    :param tensor: the tensor to be normalized
+    :param mean: mean of the tensor
+    :param std: std of the tensor
+    :return: the normalized tensor
+    """
+    return (tensor - mean) / std
+
+def un_normalize(tensor: torch.tensor, mean: float, std: float):
+    """
+    undo the z-score normalization on a tensor
+    :param tensor: the tensor to be un-normalized
+    :param mean: mean of the tensor
+    :param std: std of the tensor
+    :return: the un-normalized tensor
+    """
+    return (tensor * std) + mean
+
 class ImageTensor:
 
-    def __init__(self, root: str):
+    def __init__(self, root: str,
+                 input_path: str, target_path: str,
+                 shape: tuple, truncated_shape: tuple, final_shape: tuple):
+        """
+        This method loads and returns a stack of tensors from segy or npy files
+        :param root: root directory
+        :param input_path: input file name
+        :param target_path: target file name
+        :param shape: shape of the data in the form of number of shots, number of receivers and number of samples
+        :param truncated_shape: truncated (new) shape of data in the form of number of shots, number of receivers and number of samples
+        :param final_shape: the shape of the tensors in the stack
+        :return: common receiver image tensor stack
+        """
         self.root = root
-        self.shape = None
+        self.input_path = input_path
+        self.target_path = target_path
+        self.shape = shape
+        self.truncated_shape = truncated_shape
+        self.final_shape = final_shape
+        self.image_shape = None
 
-    def load_tensor_csv(self, file_path: str):
-        """
-        This method converts seismic data from a csv file to tensor
-        :param file_path: path of the seismic data
-        :return: tensor data
-        """
-        try:
-            data = pd.read_csv(file_path, header=None).values
-        except FileNotFoundError as error:
-            print(error)
-            sys.exit()
-        #plot_data(data.T)
-        self.shape = data.shape
-        tensor = torch.tensor(data, dtype=torch.float32).unsqueeze(0)
-        return normalize(tensor)
+        self.input = self.load_stack(input_path)
+        self.target = self.load_stack(target_path)
+        
+        self.input_mean, self.input_std = get_mean_std(self.input)
+        self.target_mean, self.target_std = get_mean_std(self.target)
 
     def load_tensor(self, tensor_data: np.array):
         """
@@ -69,29 +92,11 @@ class ImageTensor:
         :param tensor_data: seismic data
         :return: tensor data
         """
-        self.shape = tensor_data.shape
+        self.image_shape = tensor_data.shape
         tensor = torch.tensor(tensor_data.real, dtype=torch.float32).unsqueeze(0)
-        return normalize(tensor)
+        return tensor
 
-    def load_stack_csv(self, data_dir: str):
-        """
-        This method loads and returns a stack of tensors from csv files
-        :param data_dir: data file directory
-        :return: image tensor stack
-        """
-        path = str(os.path.join(self.root, data_dir))
-        file_paths = [f'{path}/{file_name}' for file_name in os.listdir(path) if file_name.endswith('csv')]
-        return torch.stack([self.load_tensor_csv(file_path) for file_path in file_paths])
-
-    def load_stack(self, file_name: str, shape: tuple, truncated_shape: tuple, final_shape: tuple):
-        """
-        This method loads and returns a stack of tensors from segy or npy files
-        :param file_name: data file name
-        :param shape: shape of the data in the form of number of shots, number of receivers and number of samples
-        :param truncated_shape: truncated (new) shape of data in the form of number of shots, number of receivers and number of samples
-        :param final_shape: the shape of the tensors in the stack
-        :return: common receiver image tensor stack
-        """
+    def load_stack(self, file_name: str):
         path = str(os.path.join(self.root, file_name))
         try:
             if 'segy' in file_name:
@@ -99,9 +104,9 @@ class ImageTensor:
                 data = segyio.collect(f1.trace[:])
             else:
                 data = np.load(path)
-            data = data.reshape(*shape)
-            data = data[:truncated_shape[0], :truncated_shape[1], :truncated_shape[2]]
-            data = data.reshape(*final_shape)
+            data = data.reshape(*self.shape)
+            data = data[:self.truncated_shape[0], :self.truncated_shape[1], :self.truncated_shape[2]]
+            data = data.reshape(*self.final_shape)
         except FileNotFoundError as error:
             print(f'[ERROR] {error}')
             sys.exit()
@@ -109,7 +114,7 @@ class ImageTensor:
             print(f'[ERROR] {error}')
             sys.exit()
 
-        num_receptors = final_shape[1]
+        num_receptors = self.final_shape[1]
 
         #plot_data(data[:,1,:].real.T, shape)
         return torch.stack([self.load_tensor(data[:, receptor, :]) for receptor in range(num_receptors)])
