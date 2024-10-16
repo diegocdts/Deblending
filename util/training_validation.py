@@ -1,9 +1,10 @@
-import numpy as np
 import torch
+import numpy as np
 
 from sklearn.model_selection import KFold
 from torch.utils.data import DataLoader, TensorDataset
 
+torch.cuda.empty_cache()
 
 class CrossValidation:
 
