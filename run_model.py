@@ -8,9 +8,10 @@ from util.config import load
 from util.data import ImageTensor
 from util.training_validation import CrossValidation
 
+pwd = '/home/src'
 args = args()
-data_parameters = load('config/data.json',args.data)
-model_parameters = load('config/model.json',args.model)
+data_parameters = load(f'{pwd}/config/data.json',args.data)
+model_parameters = load(f'{pwd}/config/model.json',args.model)
 
 imageTensor = ImageTensor(data_parameters["root"])
 inputs = imageTensor.load_stack(data_parameters["input_file_name"], shape=data_parameters["shape"])

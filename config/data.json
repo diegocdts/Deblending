@@ -1,9 +1,9 @@
 {
   "data1": {
-    "root": "/home/diegocdts/Documentos/Projeto Geofísica/",
+    "root": "/home/data/DEBLEND/",
     "input_file_name": "seismic_blended.npy",
     "output_file_name": "seismic.segy",
     "shape": [1001, 120, 1500],
-    "output_path": "/home/diegocdts/Documentos/Projeto Geofísica/seismic_predicted_deblended.npy"
+    "output_path": "/home/data/DEBLEND/seismic_predicted_deblended.npy"
   }
 }
