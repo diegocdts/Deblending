@@ -83,23 +83,25 @@ class ImageTensor:
         file_paths = [f'{path}/{file_name}' for file_name in os.listdir(path) if file_name.endswith('csv')]
         return torch.stack([self.load_tensor_csv(file_path) for file_path in file_paths])
 
-    def load_stack(self, file_name: str, data_dir: str = '', shape: tuple = None):
+    def load_stack(self, file_name: str, shape: tuple, truncated_shape: tuple, final_shape: tuple):
         """
         This method loads and returns a stack of tensors from segy or npy files
         :param file_name: data file name
-        :param data_dir: data file directory
         :param shape: shape of the data in the form of number of shots, number of receivers and number of samples
+        :param truncated_shape: truncated (new) shape of data in the form of number of shots, number of receivers and number of samples
+        :param final_shape: the shape of the tensors in the stack
         :return: common receiver image tensor stack
         """
-        path = str(os.path.join(self.root, data_dir, file_name))
+        path = str(os.path.join(self.root, file_name))
         try:
             if 'segy' in file_name:
                 f1 = segyio.open(path, ignore_geometry=True)
                 data = segyio.collect(f1.trace[:])
             else:
                 data = np.load(path)
-                shape = data.shape
             data = data.reshape(*shape)
+            data = data[:truncated_shape[0], :truncated_shape[1], :truncated_shape[2]]
+            data = data.reshape(*final_shape)
         except FileNotFoundError as error:
             print(f'[ERROR] {error}')
             sys.exit()
@@ -107,7 +109,7 @@ class ImageTensor:
             print(f'[ERROR] {error}')
             sys.exit()
 
-        num_receptors = shape[1]
+        num_receptors = final_shape[1]
 
         #plot_data(data[:,1,:].real.T, shape)
         return torch.stack([self.load_tensor(data[:, receptor, :]) for receptor in range(num_receptors)])

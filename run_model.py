@@ -13,9 +13,15 @@ args = args()
 data_parameters = load(f'{pwd}/config/data.json',args.data)
 model_parameters = load(f'{pwd}/config/model.json',args.model)
 
+shape = data_parameters["shape"]
+truncated_shape = data_parameters["truncated_shape"]
+final_shape = data_parameters["final_shape"]
+
 imageTensor = ImageTensor(data_parameters["root"])
-inputs = imageTensor.load_stack(data_parameters["input_file_name"], shape=data_parameters["shape"])
-targets = imageTensor.load_stack(data_parameters["output_file_name"], shape=data_parameters["shape"])
+inputs = imageTensor.load_stack(data_parameters["input_file_name"],
+                                shape=shape, truncated_shape=truncated_shape, final_shape=final_shape)
+targets = imageTensor.load_stack(data_parameters["output_file_name"],
+                                 shape=shape, truncated_shape=truncated_shape, final_shape=final_shape)
 
 lr = model_parameters["lr"]
 n_splits = model_parameters["n_splits"]

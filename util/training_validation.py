@@ -22,11 +22,13 @@ class CrossValidation:
         :param optimizer: optimizer
         :param inputs: input tensors
         :param targets: target tensors
-        :param n_splits: number of cross-validation splits (kfold)
+        :param n_splits: number of cross-validation splits (k-fold)
         :param n_epochs: number of epochs
         :param batch_size: batch size
         """
-        self.model = model
+        self.model = torch.nn.DataParallel(model)
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.model.to(self.device)
         self.criterion = criterion
         self.optimizer = optimizer
         self.inputs = inputs
@@ -72,6 +74,7 @@ class CrossValidation:
         model.train()
         total_loss = 0
         for x_batch, y_batch in train_loader:
+            x_batch, y_batch = x_batch.to(self.device), y_batch(self.device)
             optimizer.zero_grad()
             outputs = model(x_batch)
             loss = self.criterion(outputs, y_batch)
@@ -86,6 +89,7 @@ class CrossValidation:
         val_loss_total = 0
         with torch.no_grad():
             for x_val_batch, y_val_batch in val_loader:
+                x_val_batch, y_val_batch = x_val_batch.to(self.device), y_val_batch.to(self.device)
                 val_outputs = model(x_val_batch)
                 val_loss = self.criterion(val_outputs, y_val_batch)
                 val_loss_total += val_loss.item()
@@ -93,7 +97,7 @@ class CrossValidation:
 
     def predict(self, output_path):
         model = self.best_model.eval()
-        inputs = self.inputs
+        inputs = self.inputs.to(self.device)
         with torch.no_grad:
             outputs = model(inputs)
             outputs_array = outputs.cpu().numpy()
