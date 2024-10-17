@@ -10,8 +10,10 @@ from util.training_validation import CrossValidation
 
 pwd = '/home/src'
 args = args()
-data_parameters = load(f'{pwd}/config/data.json',args.data)
-model_parameters = load(f'{pwd}/config/model.json',args.model)
+data_name = args.data
+model_name = args.model
+data_parameters = load(f'{pwd}/config/data.json', data_name)
+model_parameters = load(f'{pwd}/config/model.json', model_name)
 
 root = data_parameters["root"]
 input_path = data_parameters["input_file_name"]
@@ -41,6 +43,6 @@ else:
 criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=lr)
 
-cross_validation = CrossValidation(model, args.model, criterion, optimizer, imageTensor, n_splits, n_epochs, batch_size, outputs_path)
+cross_validation = CrossValidation(model, model_name, criterion, optimizer, imageTensor, n_splits, n_epochs, batch_size, outputs_path)
 cross_validation.run()
 cross_validation.predict()
