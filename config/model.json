@@ -1,27 +1,26 @@
 {
-  "linear": {
+  "mlp_2": {
+    "num_hidden_layers": 2,
     "dropout_prob": 0.2,
     "lr": 0.001,
     "n_splits": 5,
-    "n_epochs": 10,
+    "n_epochs": 50,
     "batch_size": 100
   },
   "mlp_3": {
     "num_hidden_layers": 3,
-    "hidden_factor": 0.5,
     "dropout_prob": 0.2,
     "lr": 0.001,
     "n_splits": 5,
-    "n_epochs": 10,
+    "n_epochs": 50,
     "batch_size": 100
   },
   "mlp_4": {
     "num_hidden_layers": 4,
-    "hidden_factor": 0.5,
     "dropout_prob": 0.2,
     "lr": 0.001,
     "n_splits": 5,
-    "n_epochs": 10,
+    "n_epochs": 50,
     "batch_size": 100
   }
 }
