@@ -8,7 +8,7 @@ from torch import optim
 from torch.utils.data import DataLoader, Subset
 
 from model.mlp import MLP
-from util.dataset import ImageDataset, load_data, mean_std, normalize_z_score, denormalize_z_score
+from util.dataset import ImageDataset, load_data, mean_std, normalize_z_score as nzs, denormalize_z_score as dzs
 
 
 class TrainingValidation:
@@ -16,26 +16,23 @@ class TrainingValidation:
     def __init__(self, name, model_parameters, data_parameters):
         input_path = data_parameters["input_path"]
         target_path = data_parameters["target_path"]
-        shape = data_parameters["shape"]
         outputs_path = data_parameters["outputs_path"]
-        n_samples = shape[0]
 
         num_hidden_layers = model_parameters["num_hidden_layers"]
         dropout_prob = model_parameters["dropout_prob"]
         n_splits = model_parameters["n_splits"]
 
-        input_dataset = load_data(input_path, shape)
-        target_dataset = load_data(target_path, shape)
+        train_input, val_input, test_input = load_data(input_path, train_percent=0.7, val_percent=0.2)
+        train_target, val_target, test_target = load_data(target_path, train_percent=0.7, val_percent=0.2)
+
         self.name = name
-        self.mean, self.std = mean_std(input_dataset[:int(0.7*n_samples)])
+        self.mean, self.std = mean_std(train_input)
 
-        normalized_input = normalize_z_score(input_dataset, self.mean, self.std)
-        normalized_target = normalize_z_score(target_dataset, self.mean, self.std)
-        self.train_dataset = ImageDataset(normalized_input, normalized_target, end=int(0.7*n_samples))
-        self.val_dataset = ImageDataset(normalized_input, normalized_target, start=int(0.7*n_samples), end=int(0.9*n_samples))
-        self.test_dataset = ImageDataset(normalized_input, normalized_target, start=int(0.9 * n_samples))
+        self.train_dataset = ImageDataset(nzs(train_input, self.mean, self.std), nzs(train_target, self.mean, self.std))
+        self.val_dataset = ImageDataset(nzs(val_input, self.mean, self.std), nzs(val_target, self.mean, self.std))
+        self.test_dataset = ImageDataset(nzs(test_input, self.mean, self.std), nzs(test_target, self.mean, self.std))
 
-        self.model = MLP(shape, num_hidden_layers, dropout_prob)
+        self.model = MLP(units=train_input.shape[1], num_hidden_layers=num_hidden_layers, dropout_prob=dropout_prob)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
 
@@ -105,7 +102,7 @@ class TrainingValidation:
                 x_batch, y_batch = x_batch.to(self.device), y_batch.to(self.device)
                 x_batch = x_batch.to(self.device)
                 outputs = model(x_batch)
-                outputs = denormalize_z_score(outputs.cpu().numpy(), self.mean, self.std)
+                outputs = dzs(outputs.cpu().numpy(), self.mean, self.std)
                 predictions.append(outputs)
         predictions = np.array(predictions)
         np.save(f'{self.outputs_path}/prediction_{self.name}.npy', predictions)

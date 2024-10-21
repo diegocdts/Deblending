@@ -1,3 +1,5 @@
+import glob
+
 import numpy as np
 import segyio
 import torch
@@ -14,33 +16,40 @@ def normalize_z_score(data, mean, std):
 def denormalize_z_score(normalized_data, mean, std):
     return (normalized_data * std) + mean
 
-def load_file(file_path, shape):
-    if 'segy' in file_path:
-        f1 = segyio.open(file_path, ignore_geometry=True)
-        data = segyio.collect(f1.trace[:])
-    else:
-        data = np.load(file_path)
-    if data.shape != shape:
-        data = data.reshape(*shape)
-    return data.real
-
 def plot_image(data):
     plt.imshow(data.T, aspect='auto', cmap='seismic', origin='upper', vmin=-100, vmax=100)
     plt.colorbar()
     plt.show()
 
-def load_data(path, shape):
-    return load_file(path, shape)
+def load_file(file_path):
+    if 'sgy' in file_path:
+        f1 = segyio.open(file_path, ignore_geometry=True)
+        data = segyio.collect(f1.trace[:])
+    else:
+        data = np.load(file_path)
+    return data.real
+
+def load_data(path, train_percent, val_percent):
+    files = sorted(glob.glob(f'{path}/*'))
+    train_end = len(files) * train_percent
+    val_end = (len(files) * val_percent) + train_end
+    data_train, data_val, data_test = [], [], []
+
+    for index, file_path in enumerate(files):
+        samples = load_file(file_path)
+        if index < int(train_end):
+            data_train.extend(samples)
+        elif index < int(val_end):
+            data_val.extend(samples)
+        else:
+            data_test.extend(samples)
+    return np.array(data_train), np.array(data_val), np.array(data_test)
 
 class ImageDataset(Dataset):
 
-    def __init__(self, input_data: np.array, target_data: np.array, start: int = None, end: int = None):
-        if start is None:
-            start = 0
-        if end is None:
-            end = len(input_data)
-        self.input_images = input_data[start:end]
-        self.target_images = target_data[start:end]
+    def __init__(self, input_data: np.array, target_data: np.array):
+        self.input_images = input_data
+        self.target_images = target_data
 
         self.input_images = torch.FloatTensor(self.input_images).unsqueeze(1)
         self.target_images = torch.FloatTensor(self.target_images).unsqueeze(1)
