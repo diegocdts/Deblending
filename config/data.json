@@ -2,6 +2,7 @@
   "data1": {
     "input_path": "/home/diegocdts/Documentos/Projeto Geofísica/RESULTADO_BLENDED/",
     "target_path": "/home/diegocdts/Documentos/Projeto Geofísica/RESULTADO_SINGLE/",
+    "n_files_to_use": 50,
     "outputs_path": "/home/data/Deblending_model_XX_outputs/"
   }
 }

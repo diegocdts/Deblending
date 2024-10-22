@@ -29,8 +29,8 @@ def load_file(file_path):
         data = np.load(file_path)
     return data.real
 
-def load_data(path, train_percent, val_percent):
-    files = sorted(glob.glob(f'{path}/*'))
+def load_data(path, n_files_to_use, train_percent, val_percent):
+    files = sorted(glob.glob(f'{path}/*'))[:n_files_to_use]
     train_end = len(files) * train_percent
     val_end = (len(files) * val_percent) + train_end
     data_train, data_val, data_test = [], [], []

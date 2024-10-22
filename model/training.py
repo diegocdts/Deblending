@@ -16,14 +16,15 @@ class TrainingValidation:
     def __init__(self, name, model_parameters, data_parameters):
         input_path = data_parameters["input_path"]
         target_path = data_parameters["target_path"]
+        n_files_to_use = data_parameters["n_files_to_use"]
         outputs_path = data_parameters["outputs_path"]
 
         num_hidden_layers = model_parameters["num_hidden_layers"]
         dropout_prob = model_parameters["dropout_prob"]
         n_splits = model_parameters["n_splits"]
 
-        train_input, val_input, test_input = load_data(input_path, train_percent=0.7, val_percent=0.2)
-        train_target, val_target, test_target = load_data(target_path, train_percent=0.7, val_percent=0.2)
+        train_input, val_input, test_input = load_data(input_path, n_files_to_use, train_percent=0.7, val_percent=0.2)
+        train_target, val_target, test_target = load_data(target_path, n_files_to_use, train_percent=0.7, val_percent=0.2)
 
         self.name = name
         self.mean, self.std = mean_std(train_input)
