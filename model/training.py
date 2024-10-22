@@ -49,6 +49,7 @@ class TrainingValidation:
         Performs cross-validation over the model
         """
         val_losses = []
+        val_rms_list = []
         for fold, (train_index, val_index) in enumerate(self.k_fold.split(self.train_dataset)):
             train_subset = Subset(self.train_dataset, train_index)
             val_subset = Subset(self.val_dataset, val_index)
@@ -75,18 +76,30 @@ class TrainingValidation:
             #validation
             model.eval()
             val_loss = 0
+            all_preds = []
+            all_targets = []
             with torch.no_grad():
                 for x_batch, y_batch in val_loader:
                     x_batch, y_batch = x_batch.to(self.device), y_batch.to(self.device)
                     outputs = model(x_batch)
                     loss = criterion(outputs, y_batch)
                     val_loss += loss.item()
+
+                    all_preds.append(outputs.cpu().numpy())
+                    all_targets.append(y_batch.cpu().numpy())
+
             val_losses.append(val_loss)
+
+            all_preds = np.concatenate(all_preds, axis=0)
+            all_targets = np.concatenate(all_targets, axis=0)
+            rms = np.sqrt(np.mean((all_preds - all_targets) ** 2))
+            val_rms_list.append(rms)
+            print(f"Fold {fold + 1}, RMS: {rms}")
+
             if val_loss < self.lowest_loss:
                 self.lowest_loss = val_loss
                 torch.save(model.state_dict(), f'{self.outputs_path}/model_weights.pth')
-        val_losses = np.array(val_losses)
-        self.write_losses(val_losses)
+        self.write_losses(val_losses, val_rms_list)
 
     def predict(self):
         test_loader = DataLoader(self.test_dataset, batch_size=1, shuffle=False)
@@ -107,5 +120,6 @@ class TrainingValidation:
         predictions = np.array(predictions)
         np.save(f'{self.outputs_path}/prediction_{self.name}.npy', predictions)
 
-    def write_losses(self, losses):
-        np.savetxt(f'{self.outputs_path}/losses_{self.name}.csv', losses, fmt='%.5f')
+    def write_losses(self, val_losses, val_rms_list):
+        np.savetxt(f'{self.outputs_path}/losses_{self.name}.csv', np.array(val_losses), fmt='%.5f')
+        np.savetxt(f'{self.outputs_path}/val_rms_{self.name}.csv', np.array(val_rms_list), fmt='%.5f')
