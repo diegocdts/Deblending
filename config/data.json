@@ -3,6 +3,6 @@
     "input_path": "/home/data/RESULTADO_BLENDED/",
     "target_path": "/home/data/RESULTADO_SINGLE/",
     "n_files_to_use": 50,
-    "outputs_path": "/home/data/Deblending_model_XX_outputs"
+    "outputs_path": "/home/src/Deblending_model_XX_outputs"
   }
 }
