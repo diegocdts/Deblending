@@ -51,8 +51,8 @@ class ImageDataset(Dataset):
         self.input_images = input_data
         self.target_images = target_data
 
-        self.input_images = torch.FloatTensor(self.input_images).unsqueeze(1)
-        self.target_images = torch.FloatTensor(self.target_images).unsqueeze(1)
+        self.input_images = torch.FloatTensor(self.input_images)
+        self.target_images = torch.FloatTensor(self.target_images)
 
     def __len__(self):
         return len(self.input_images)
