@@ -3,7 +3,7 @@
     "num_hidden_layers": 2,
     "dropout_prob": 0.2,
     "lr": 0.001,
-    "n_splits": 5,
+    "n_splits": 8,
     "n_epochs": 50,
     "batch_size": 200
   },
@@ -11,7 +11,7 @@
     "num_hidden_layers": 3,
     "dropout_prob": 0.2,
     "lr": 0.001,
-    "n_splits": 5,
+    "n_splits": 8,
     "n_epochs": 50,
     "batch_size": 200
   },
@@ -19,7 +19,7 @@
     "num_hidden_layers": 4,
     "dropout_prob": 0.2,
     "lr": 0.001,
-    "n_splits": 5,
+    "n_splits": 8,
     "n_epochs": 50,
     "batch_size": 200
   }
