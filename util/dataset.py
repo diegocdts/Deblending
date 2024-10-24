@@ -31,11 +31,12 @@ def load_file(file_path):
 
 def load_data(input_path, target_path, start, end):
     input_files = sorted(glob.glob(f'{input_path}/*'))[start:end]
-    target_files = sorted(glob.glob(f'{target_path}/*'))
+    all_target_files = sorted(glob.glob(f'{target_path}/*'))
+    target_files = []
     for input_file in input_files:
         suffix = input_file[-20:]
-        matching_targets = [target_file for target_file in target_files if target_file.endswith(suffix)]
-        target_files = matching_targets
+        matching_targets = [target_file for target_file in all_target_files if target_file.endswith(suffix)]
+        target_files.extend(matching_targets)
 
     data_input, data_target = [], []
 
