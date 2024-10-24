@@ -18,15 +18,23 @@ class TrainingValidation:
     def __init__(self, name, model_parameters, data_parameters):
         input_path = data_parameters["input_path"]
         target_path = data_parameters["target_path"]
-        n_files_to_use = data_parameters["n_files_to_use"]
+        n_train_files = data_parameters["n_train_files"]
+        n_val_files = data_parameters["n_val_files"]
+        n_test_files = data_parameters["n_test_files"]
         outputs_path = data_parameters["outputs_path"]
 
         num_hidden_layers = model_parameters["num_hidden_layers"]
         dropout_prob = model_parameters["dropout_prob"]
         n_splits = model_parameters["n_splits"]
 
-        train_input, val_input, test_input = load_data(input_path, n_files_to_use, train_percent=0.7, val_percent=0.2)
-        train_target, val_target, test_target = load_data(target_path, n_files_to_use, train_percent=0.7, val_percent=0.2)
+        start, end = 0, n_train_files
+        train_input, train_target = load_data(input_path, target_path, start, end)
+
+        start, end = n_train_files, (n_train_files + n_val_files)
+        val_input, val_target = load_data(input_path, target_path, start, end)
+
+        start, end = (n_train_files + n_val_files), (n_train_files + n_val_files + n_test_files)
+        test_input, test_target = load_data(input_path, target_path, start, end)
 
         self.name = name
         self.mean, self.std = mean_std(train_input)

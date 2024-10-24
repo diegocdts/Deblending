@@ -29,21 +29,22 @@ def load_file(file_path):
         data = np.load(file_path)
     return data.real
 
-def load_data(path, n_files_to_use, train_percent, val_percent):
-    files = sorted(glob.glob(f'{path}/*'))[:n_files_to_use]
-    train_end = len(files) * train_percent
-    val_end = (len(files) * val_percent) + train_end
-    data_train, data_val, data_test = [], [], []
+def load_data(input_path, target_path, start, end):
+    input_files = sorted(glob.glob(f'{input_path}/*'))[start:end]
+    target_files = sorted(glob.glob(f'{target_path}/*'))
+    for input_file in input_files:
+        suffix = input_file[-20:]
+        matching_targets = [target_file for target_file in target_files if target_file.endswith(suffix)]
+        target_files = matching_targets
 
-    for index, file_path in enumerate(files):
-        samples = load_file(file_path)
-        if index < int(train_end):
-            data_train.extend(samples)
-        elif index < int(val_end):
-            data_val.extend(samples)
-        else:
-            data_test.extend(samples)
-    return np.array(data_train), np.array(data_val), np.array(data_test)
+    data_input, data_target = [], []
+
+    for index, _ in enumerate(input_files):
+        input_samples = load_file(input_files[index])
+        data_input.extend(input_samples)
+        target_samples = load_file(target_files[index])
+        data_target.extend(target_samples)
+    return np.array(data_input), np.array(data_target)
 
 class ImageDataset(Dataset):
 

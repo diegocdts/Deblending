@@ -2,7 +2,9 @@
   "data1": {
     "input_path": "/home/data/RESULTADO_BLENDED/",
     "target_path": "/home/data/RESULTADO_SINGLE/",
-    "n_files_to_use": 50,
+    "n_train_files": 35,
+    "n_val_files": 10,
+    "n_test_files": 5,
     "outputs_path": "/home/src/Deblending_model_XX_outputs"
   }
 }
